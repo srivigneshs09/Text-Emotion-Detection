@@ -4,61 +4,150 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Emotion Detection</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/vega@5.21.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.2.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.18.2"></script>
+
+    <!-- Custom Styles -->
+    <style>
+        body {
+            background-color: #f4f8fb;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            margin-top: 60px;
+            max-width: 800px;
+        }
+        h1 {
+            font-weight: bold;
+            color: #007bff;
+            text-align: center;
+        }
+        .btn-submit {
+            background-color: #007bff;
+            color: white;
+            font-size: 1.1rem;
+            padding: 10px 0;
+        }
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+            padding: 20px;
+        }
+        .form-group textarea {
+            font-size: 1rem;
+            resize: none;
+        }
+        .table th, .table td {
+            vertical-align: middle;
+            text-align: center;
+        }
+        .table th {
+            background-color: #007bff;
+            color: white;
+        }
+        #chart {
+            max-width: 100%;
+            margin-top: 20px;
+        }
+        .result-section h4 {
+            font-weight: bold;
+            color: #333;
+        }
+        .side-by-side {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .side-by-side > div {
+            flex: 1 1 45%;
+            min-width: 300px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Text Emotion Detection</h1>
-    <h3>Detect Emotions In Text</h3>
 
-    <form method="POST">
-        <textarea name="raw_text" rows="4" cols="50" placeholder="Type Here"></textarea><br><br>
-        <button type="submit">Submit</button>
-    </form>
+<div class="container">
+    <h1>Text Emotion Detection</h1>
+    <p class="text-center text-muted">Discover emotions embedded in your text with AI</p>
+
+    <!-- Input Form Card -->
+    <div class="card">
+        <form method="POST">
+            <div class="form-group">
+                <textarea name="raw_text" class="form-control" rows="4" placeholder="Type your text here..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-submit btn-block">Analyze Text</button>
+        </form>
+    </div>
 
     {% if raw_text %}
-        <h3>Original Text</h3>
-        <p>{{ raw_text }}</p>
+        <!-- Results Section -->
+        <div class="card result-section">
+            <h4>Analysis Results</h4>
+            <hr>
+            <p><strong>Original Text:</strong> {{ raw_text }}</p>
+            <p><strong>Predicted Emotion:</strong> {{ prediction }} <span>{{ emoji_icon }}</span></p>
+            <p><strong>Confidence:</strong> {{ confidence | round(2) }}</p>
 
-        <h3>Prediction</h3>
-        <p>{{ prediction }}: {{ emoji_icon }}</p>
-        <p>Confidence: {{ confidence }}</p>
+            <!-- Side-by-Side Layout for Table and Chart -->
+            <div class="side-by-side">
+                <!-- Probability Table -->
+                <div class="table-responsive">
+                    <h5>Prediction Probability</h5>
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>Emotion</th>
+                                <th>Probability</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in proba_df_clean %}
+                            <tr>
+                                <td>{{ row.emotions }}</td>
+                                <td>{{ row.probability | round(2) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
 
-        <h3>Prediction Probability</h3>
-        <table border="1">
-            <tr>
-                <th>Emotion</th>
-                <th>Probability</th>
-            </tr>
-            {% for row in proba_df_clean %}
-            <tr>
-                <td>{{ row.emotions }}</td>
-                <td>{{ row.probability }}</td>
-            </tr>
-            {% endfor %}
-        </table>
+                <!-- Chart Div -->
+                <div id="chart"></div>
+            </div>
+        </div>
 
-        <!-- Div to hold the probability bar chart -->
-        <div id="chart"></div>
-
-        <!-- Script to create the Altair chart with Vega-Lite -->
+        <!-- Vega Lite Chart Script -->
         <script type="text/javascript">
             const chartData = {{ proba_df_clean | tojson }};
             
             const chartSpec = {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
                 "data": { "values": chartData },
-                "mark": "bar",
+                "mark": { "type": "bar", "cornerRadiusEnd": 4 },
                 "encoding": {
                     "x": { "field": "emotions", "type": "nominal", "title": "Emotions" },
-                    "y": { "field": "probability", "type": "quantitative", "title": "Probability" },
-                    "color": { "field": "emotions", "type": "nominal" }
+                    "y": { "field": "probability", "type": "quantitative", "title": "Probability", "scale": {"domain": [0, 1]} },
+                    "color": { "field": "emotions", "type": "nominal", "legend": null }
+                },
+                "config": {
+                    "view": { "stroke": "transparent" },
+                    "axis": { "labelFontSize": 12, "titleFontSize": 14 }
                 }
             };
 
             vegaEmbed('#chart', chartSpec);
         </script>
     {% endif %}
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
