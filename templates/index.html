@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Emotion Detection</title>
+</head>
+<body>
+    <h1>Text Emotion Detection</h1>
+    <h3>Detect Emotions In Text</h3>
+
+    <form method="POST">
+        <textarea name="raw_text" rows="4" cols="50" placeholder="Type Here"></textarea><br><br>
+        <button type="submit">Submit</button>
+    </form>
+
+    {% if raw_text %}
+        <h3>Original Text</h3>
+        <p>{{ raw_text }}</p>
+
+        <h3>Prediction</h3>
+        <p>{{ prediction }}: {{ emoji_icon }}</p>
+        <p>Confidence: {{ confidence }}</p>
+
+        <h3>Prediction Probability</h3>
+        <table border="1">
+            <tr>
+                <th>Emotion</th>
+                <th>Probability</th>
+            </tr>
+            {% for row in proba_df_clean %}
+            <tr>
+                <td>{{ row.emotions }}</td>
+                <td>{{ row.probability }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+</body>
+</html>
