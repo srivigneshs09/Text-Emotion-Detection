@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Emotion Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.21.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.2.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.18.2"></script>
 </head>
 <body>
     <h1>Text Emotion Detection</h1>
@@ -35,6 +38,27 @@
             </tr>
             {% endfor %}
         </table>
+
+        <!-- Div to hold the probability bar chart -->
+        <div id="chart"></div>
+
+        <!-- Script to create the Altair chart with Vega-Lite -->
+        <script type="text/javascript">
+            const chartData = {{ proba_df_clean | tojson }};
+            
+            const chartSpec = {
+                "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                "data": { "values": chartData },
+                "mark": "bar",
+                "encoding": {
+                    "x": { "field": "emotions", "type": "nominal", "title": "Emotions" },
+                    "y": { "field": "probability", "type": "quantitative", "title": "Probability" },
+                    "color": { "field": "emotions", "type": "nominal" }
+                }
+            };
+
+            vegaEmbed('#chart', chartSpec);
+        </script>
     {% endif %}
 </body>
 </html>
